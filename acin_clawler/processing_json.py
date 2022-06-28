@@ -1,7 +1,7 @@
 import json
 class Processing_json():
     def __init__(self, file_path):
-        file_path = './result/naver_news/news_한동훈_naver_20220620_20220623__202206.json'
+        # file_path = './result/naver_news/news_한동훈_naver_20220620_20220623__202206.json'
         json_file = open(file_path, encoding = 'utf-8')
         
         self.j_dic = json.load(json_file)
@@ -18,3 +18,8 @@ class Processing_json():
             temp = []
         return self.result_dic
 
+p = Processing_json("./result/naver_news/news_한동훈_naver_20220620_20220623__202206.json")
+t = p.dateNList()
+for key in t.keys():
+    for i in t[key]:
+        print(key, i, end="\n")
