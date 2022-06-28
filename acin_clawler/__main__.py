@@ -22,6 +22,8 @@ from tqdm import trange
 import sys
 sys.setrecursionlimit(5000)
 
+from processing_json import Processing_json
+
 
 def info_time(dic, us_news, kr_news):
     dic_key = dic.keys()
@@ -113,18 +115,23 @@ if __name__ == "__main__":
     driver_url = './chromedriver.exe'
 
     chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument('--headless')
+    # chrome_options.add_argument('--headless')
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--privileged')
     chrome_options.add_argument('--incognito')
     chrome_options.add_argument('--disable-dev-shm-usage')
 
+    chrome_options.add_argument('window-size=1920x1080')
+    chrome_options.add_argument('disable-gpu')
+    chrome_options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36")
+    chrome_options.add_argument('lang=ko_KR')
+
     # selenium으로 크롤링하여 저 장된 링크를 가지고 requests로 다시 크롤링하여 json으로 저장
     # kr은 requests로 동기식, us는 grequests와 async로 비동기식 (kr은 비동기가 안먹힘(다음뉴스 500 오류))
 
-    search = "모기" # 검색할 키워드
-    start_date = "20220620" # 검색 기간 시작 날짜
-    end_date = "20220621" # 검색 기간 종료 날짜
+    search = "냉장고" # 검색할 키워드
+    start_date = "20220623" # 검색 기간 시작 날짜
+    end_date = "20220623" # 검색 기간 종료 날짜
     
     search = search.replace(' ', '+')
 
@@ -192,4 +199,11 @@ if __name__ == "__main__":
     print(f'all : {all}')
     # with open(f'result/news_{search}_all_{start_date}_{end_date}.json', 'w', encoding='utf8') as f:
     #     json.dump(dict(dic), f, indent=4, sort_keys=True, ensure_ascii=False)
+
+    p = Processing_json(f'result/{company}_news/news_{search}_{company}_{start_date}_{end_date}__{date[:6]}.json')
+    print(p.dateNList())
     exit()
+
+
+
+    
