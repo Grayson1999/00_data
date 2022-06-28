@@ -272,7 +272,7 @@ def crawlNewsProcess( idx, driver_url, chrome_options, news_url_list, news_dic, 
             count = 0
             count_ += 1
             # print(f"{idx+1}번 프로세스 네이버뉴스 댓글 크롤링 시작 :{url}\t{ii}/{len(news_url_list)}")
-            print(f"{idx+1}번 프로세스 다음뉴스 댓글 크롤링 시작 :{url}\t{count_}/{news_url_list.qsize()}개남음\t--{split_date} 중 {now_split_index}/{split_index_count}")
+            print(f"{idx+1}번 프로세스 네이버 뉴스 댓글 크롤링 시작 :{url}\t{count_}/{news_url_list.qsize()}개남음\t--{split_date} 중 {now_split_index}/{split_index_count}")
 
             reply_texts = []
 
