@@ -27,7 +27,11 @@
   "position_embedding_type": "absolute",
   "problem_type": "single_label_classification",
   "torch_dtype": "float32",
+<<<<<<< HEAD
   "transformers_version": "4.20.1",
+=======
+  "transformers_version": "4.12.3",
+>>>>>>> 5cf57d857f962ae17479e4b9d1b782408663f0d5
   "type_vocab_size": 2,
   "use_cache": true,
   "vocab_size": 42000
