@@ -3,3 +3,6 @@ __pycache__/
 *.zip
 result/
 *.ipynb_checkpoints/
+00_data_venv/
+진행상황.txt
+*.hwp
