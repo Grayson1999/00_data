@@ -18,7 +18,6 @@ class Processing_json():
         for i in range(0, len(comment)):
             temp = comment[i]
             temp = re.sub('[-=+,#/\:$.@*\"※&%ㆍ』\\‘|\(\)\[\]\<\>`\'…《\》]', '', temp) # 특수문자
-            temp = re.sub('([ㄱ-ㅎㅏ-ㅣ]+)', '', temp) # 한글 자음, 한글 모음
             temp = re.sub('([♡❤✌❣♥ᆢ✊❤️✨⤵️☺️;”“]+)', '', temp) # 이모티콘 
             only_BMP_pattern = re.compile("["
                                 u"\U00010000-\U0010FFFF"  #BMP characters 이외
