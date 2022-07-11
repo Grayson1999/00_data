@@ -328,26 +328,27 @@ def crawlNewsProcess( idx, driver_url, chrome_options, news_url_list, news_dic, 
             safe_bot_mode3 = div.find_element_by_xpath('/html/body/div[2]/div/div[2]/div[4]/button')
             safe_bot_mode3.click()
 
-            while True:
-                try:
-                    element = WebDriverWait(driver, 2).until(
-                        EC.presence_of_element_located((By.XPATH, '//*[@id="cbox_module"]/div[2]/div[9]/a')) 
-                    )
+            #더보기 없애기
+            # while True:
+            #     try:
+            #         element = WebDriverWait(driver, 2).until(
+            #             EC.presence_of_element_located((By.XPATH, '//*[@id="cbox_module"]/div[2]/div[9]/a')) 
+            #         )
                     
-                    more_btn = driver.find_element_by_xpath('//*[@id="cbox_module"]/div[2]/div[9]/a')
-                    print("댓글 더보기 클릭")
-                    # more_btn.click()
-                    more_btn.send_keys(Keys.ENTER)
+            #         more_btn = driver.find_element_by_xpath('//*[@id="cbox_module"]/div[2]/div[9]/a')
+            #         print("댓글 더보기 클릭")
+            #         # more_btn.click()
+            #         more_btn.send_keys(Keys.ENTER)
 
-                except TimeoutException:
-                    print("more 버튼 없음 타임아웃")
+            #     except TimeoutException:
+            #         print("more 버튼 없음 타임아웃")
                     
-                    break
+            #         break
 
-                except ElementNotInteractableException:
-                    print("more 버튼 없음")
+            #     except ElementNotInteractableException:
+            #         print("more 버튼 없음")
                     
-                    break
+            #         break
 
             try:
                 element = WebDriverWait(driver, 1).until(
@@ -401,25 +402,25 @@ def crawlNewsProcess( idx, driver_url, chrome_options, news_url_list, news_dic, 
                     print("댓 못가져와서 패스")
                     continue
 
-                if is_exists_reply:
-                    count2 = 0
-                    reply_btn = comment.find_element_by_css_selector(f'a[class="u_cbox_btn_reply"]')
-                    # reply_btn.click()
-                    reply_btn.send_keys(Keys.ENTER)
+                # if is_exists_reply:
+                #     count2 = 0
+                #     reply_btn = comment.find_element_by_css_selector(f'a[class="u_cbox_btn_reply"]')
+                #     # reply_btn.click()
+                #     reply_btn.send_keys(Keys.ENTER)
                     
-                    while True:
-                        try:
-                            element = WebDriverWait(comment, 1).until(
-                                EC.presence_of_element_located((By.CSS_SELECTOR, f'a[class="u_cbox_btn_more"]')) 
-                            )
+                #     # while True:
+                #     #     try:
+                #     #         element = WebDriverWait(comment, 1).until(
+                #     #             EC.presence_of_element_located((By.CSS_SELECTOR, f'a[class="u_cbox_btn_more"]')) 
+                #     #         )
                             
-                            more_btn2 = comment.find_element_by_css_selector(f'a[class="u_cbox_btn_more"]')
-                            # print("답글 더보기 클릭")
-                            more_btn2.send_keys(Keys.ENTER)
+                #     #         more_btn2 = comment.find_element_by_css_selector(f'a[class="u_cbox_btn_more"]')
+                #     #         # print("답글 더보기 클릭")
+                #     #         more_btn2.send_keys(Keys.ENTER)
 
-                        except:
-                            # print("답글 더보기 버튼 없음 타임아웃")
-                            break
+                #     #     except:
+                #     #         # print("답글 더보기 버튼 없음 타임아웃")
+                #     #         break
 
 
                     replys = []

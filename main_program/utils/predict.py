@@ -21,7 +21,7 @@ class Predict():
             assert len(texts) == len(labels)
             return texts, labels
 
-        texts, labels = read_data('bert_model/Ko.xlsx')
+        texts, labels = read_data('bert_model/shuffled_data.xlsx')
 
         self.train_texts, self.val_texts, train_labels, val_labels = train_test_split(
         texts, labels, test_size=0.2, random_state=43, stratify=labels)

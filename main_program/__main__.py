@@ -116,7 +116,7 @@ if __name__ == "__main__":
     driver_url = './chromedriver.exe'
 
     chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument('--headless')
+    # chrome_options.add_argument('--headless')
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--privileged')
     chrome_options.add_argument('--incognito')
@@ -130,9 +130,9 @@ if __name__ == "__main__":
     # selenium으로 크롤링하여 저 장된 링크를 가지고 requests로 다시 크롤링하여 json으로 저장
     # kr은 requests로 동기식, us는 grequests와 async로 비동기식 (kr은 비동기가 안먹힘(다음뉴스 500 오류))
 
-    search = "나로호" # 검색할 키워드
-    start_date = "20220618" # 검색 기간 시작 날짜
-    end_date = "20220628" # 검색 기간 종료 날짜
+    search = "이준석" # 검색할 키워드
+    start_date = "20220606" # 검색 기간 시작 날짜
+    end_date = "20220608" # 검색 기간 종료 날짜
     
     search = search.replace(' ', '+')
 
@@ -232,7 +232,3 @@ if __name__ == "__main__":
     result = dic_to_result(processed_dic)
     print(result)
     exit()
-
-
-
-    
