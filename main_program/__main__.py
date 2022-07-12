@@ -1,4 +1,6 @@
+from turtle import pos
 from gevent import monkey as curious_george
+from torch import positive
 curious_george.patch_all(thread=False, select=False)
 
 from selenium import webdriver
@@ -130,9 +132,9 @@ if __name__ == "__main__":
     # selenium으로 크롤링하여 저 장된 링크를 가지고 requests로 다시 크롤링하여 json으로 저장
     # kr은 requests로 동기식, us는 grequests와 async로 비동기식 (kr은 비동기가 안먹힘(다음뉴스 500 오류))
 
-    search = "이준석" # 검색할 키워드
-    start_date = "20220606" # 검색 기간 시작 날짜
-    end_date = "20220608" # 검색 기간 종료 날짜
+    search = "한동훈" # 검색할 키워드
+    start_date = "20220622" # 검색 기간 시작 날짜
+    end_date = "20220627" # 검색 기간 종료 날짜
     
     search = search.replace(' ', '+')
 
@@ -217,18 +219,35 @@ if __name__ == "__main__":
             if len(processed_dic[key]) == 0:
                 missing_value = True
             for comment in processed_dic[key]:
-                if predict.predict(comment):
+                if predict.predict(comment) == 1:
                     positive +=1
                 else:
                     negative +=1
-            if missing_value:
-                result_dic[key] = -1
+            if missing_value == True:
+                result_dic_value = -1
             else:
-                result_dic[key] = positive/(positive+negative)*100
-            positive = 0
-            negative = 0
+                result_dic_value = positive/(positive+negative)*100
+            
+            result_dic[key] = dict(negative_value=negative, positive_value=positive, result_value = result_dic_value)
+
         return result_dic   #ex) {'20220623':70, '20220624':-1(결측값)}
     
-    result = dic_to_result(processed_dic)
-    print(result)
+    def Missing_value_processing(result): #결측값 처리 결측값은 평균값으로 대체
+        positive_sum = negative_sum = count = 0
+        for day in result.keys():
+            positive_sum += result[day]['positive_value']
+            negative_sum += result[day]['negative_value']
+            count += 1
+        positive_mean = positive_sum / count
+        negative_mean = negative_sum / count
+
+        for day in result.keys():
+            if result[day]['result_value'] == -1:
+                result[day]['result_value'] = round(positive_mean/(positive_mean+negative_mean)*100, 2)
+                result[day]['positive_value'] = round(positive_mean, 2)
+                result[day]['negative_value'] = round(negative_mean, 2)
+        return result
+
+    final_result = Missing_value_processing(dic_to_result(processed_dic))
+    print(final_result)
     exit()

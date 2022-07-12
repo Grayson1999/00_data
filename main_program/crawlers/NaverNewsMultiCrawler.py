@@ -423,24 +423,24 @@ def crawlNewsProcess( idx, driver_url, chrome_options, news_url_list, news_dic, 
                 #     #         break
 
 
-                    replys = []
-                    try:
-                        replys = WebDriverWait(reply, 1).until(EC.presence_of_element_located((By.CSS_SELECTOR , f'li[class="u_cbox_comment"]')))
+                replys = []
+                try:
+                    replys = WebDriverWait(reply, 1).until(EC.presence_of_element_located((By.CSS_SELECTOR , f'li[class="u_cbox_comment"]')))
 
-                        for reply in replys:
-                            try:
-                                text = WebDriverWait(reply, 1).until(EC.presence_of_element_located((By.CSS_SELECTOR , 'span[class="u_cbox_contents"] > p'))).text
-                                if text != "작성자에 의해 삭제된 댓글입니다." and text != "클린봇이 부적절한 표현을 감지한 댓글입니다." and text != "운영규정 미준수로 인해 삭제된 댓글입니다.":
-                                    reply_texts.append( text )
-                                    count+=1
-                                    count2+=1
-                                    print(f"수집한 댓글 : {count}개\t{reply_count}개 중 {count2}개 수집")
+                    for reply in replys:
+                        try:
+                            text = WebDriverWait(reply, 1).until(EC.presence_of_element_located((By.CSS_SELECTOR , 'span[class="u_cbox_contents"] > p'))).text
+                            if text != "작성자에 의해 삭제된 댓글입니다." and text != "클린봇이 부적절한 표현을 감지한 댓글입니다." and text != "운영규정 미준수로 인해 삭제된 댓글입니다.":
+                                reply_texts.append( text )
+                                count+=1
+                                count2+=1
+                                print(f"수집한 댓글 : {count}개\t{reply_count}개 중 {count2}개 수집")
 
-                            except:
-                                print("답글 못가져와서 패스")
-                                continue
-                    except:
-                        pass
+                        except:
+                            print("답글 못가져와서 패스")
+                            continue
+                except:
+                    pass
 
                     
                     # reply_btn.send_keys(Keys.ENTER)
