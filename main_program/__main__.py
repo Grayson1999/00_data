@@ -1,4 +1,6 @@
+from hashlib import new
 from turtle import pos
+from xml.etree.ElementTree import Comment
 from gevent import monkey as curious_george
 from torch import positive
 curious_george.patch_all(thread=False, select=False)
@@ -26,6 +28,8 @@ sys.setrecursionlimit(5000)
 
 from utils.processing_json import Processing_json
 from utils.predict import Predict 
+
+import warnings
 
 
 def info_time(dic, us_news, kr_news):
@@ -113,12 +117,13 @@ def info_time(dic, us_news, kr_news):
     # dataframe.to_csv('Task2.csv', encoding='cp949')
 
 
-if __name__ == "__main__":
+def main(search,start_date,end_date):
     # 크롬 드라이버 링크
+    warnings.filterwarnings(action='ignore')
     driver_url = './chromedriver.exe'
 
     chrome_options = webdriver.ChromeOptions()
-    # chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--headless')
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--privileged')
     chrome_options.add_argument('--incognito')
@@ -132,9 +137,9 @@ if __name__ == "__main__":
     # selenium으로 크롤링하여 저 장된 링크를 가지고 requests로 다시 크롤링하여 json으로 저장
     # kr은 requests로 동기식, us는 grequests와 async로 비동기식 (kr은 비동기가 안먹힘(다음뉴스 500 오류))
 
-    search = "한동훈" # 검색할 키워드
-    start_date = "20220622" # 검색 기간 시작 날짜
-    end_date = "20220627" # 검색 기간 종료 날짜
+    # search = "한동훈" # 검색할 키워드
+    # start_date = "20220622" # 검색 기간 시작 날짜
+    # end_date = "20220627" # 검색 기간 종료 날짜
     
     search = search.replace(' ', '+')
 
@@ -178,8 +183,10 @@ if __name__ == "__main__":
         for company in ["naver"]: #daum은 따로
             with open(f'result/{company}_news/news_{search}_{company}_{start_date}_{end_date}__{date[:6]}.json','r', encoding='utf8') as f:
                 dic2 = json.load(f)
-
-            dic[date].update(dic2[date])
+            try:
+                dic[date].update(dic2[date])
+            except:
+                pass
 
 
     dic2 = {}
@@ -211,6 +218,7 @@ if __name__ == "__main__":
     def dic_to_result(processed_dic):   
         predict = Predict()
 
+
         result_dic = {}
         for key in processed_dic.keys():
             missing_value = False
@@ -230,24 +238,109 @@ if __name__ == "__main__":
             
             result_dic[key] = dict(negative_value=negative, positive_value=positive, result_value = result_dic_value)
 
-        return result_dic   #ex) {'20220623':70, '20220624':-1(결측값)}
+        return result_dic 
     
-    def Missing_value_processing(result): #결측값 처리 결측값은 평균값으로 대체
-        positive_sum = negative_sum = count = 0
+    def missing_value_processing(result): #결측값 처리 결측값은 평균값으로 대체
+        #check all about value
+        check_all_minusone = True
         for day in result.keys():
-            positive_sum += result[day]['positive_value']
-            negative_sum += result[day]['negative_value']
-            count += 1
-        positive_mean = positive_sum / count
-        negative_mean = negative_sum / count
+            if not day == -1:
+                check_all_minusone = False
+                break
+        
+        if check_all_minusone == False:
+            positive_sum = negative_sum = count = 0
+            for day in result.keys():
+                positive_sum += result[day]['positive_value']
+                negative_sum += result[day]['negative_value']
+                count += 1
+            positive_mean = positive_sum / count
+            negative_mean = negative_sum / count
+        
+            for day in result.keys():
+                if result[day]['result_value'] == -1:
+                    result[day]['result_value'] = round(positive_mean/(positive_mean+negative_mean)*100, 2)
+                    result[day]['positive_value'] = round(positive_mean, 2)
+                    result[day]['negative_value'] = round(negative_mean, 2)
+            return result
+        else:
+            return "value_error: All values are missing."
 
-        for day in result.keys():
-            if result[day]['result_value'] == -1:
-                result[day]['result_value'] = round(positive_mean/(positive_mean+negative_mean)*100, 2)
-                result[day]['positive_value'] = round(positive_mean, 2)
-                result[day]['negative_value'] = round(negative_mean, 2)
-        return result
-
-    final_result = Missing_value_processing(dic_to_result(processed_dic))
+    final_result =missing_value_processing(dic_to_result(processed_dic))
     print(final_result)
+    return final_result
+    
+
+if __name__ == "__main__":
+    def dic_to_result(processed_dic):   
+            predict = Predict()
+
+            result_dic = {}
+            for key in processed_dic.keys():
+                missing_value = False
+                positive = 0
+                negative = 0
+                if len(processed_dic[key]) == 0:
+                    missing_value = True
+                for comment in processed_dic[key]:
+                    if predict.predict(comment) == 1:
+                        positive +=1
+                    else:
+                        negative +=1
+                if missing_value == True:
+                    result_dic_value = -1
+                else:
+                    result_dic_value = positive/(positive+negative)*100
+                
+                result_dic[key] = dict(negative_value=negative, positive_value=positive, result_value = result_dic_value)
+
+            return result_dic 
+    def missing_value_processing(result): #결측값 처리 결측값은 평균값으로 대체
+        #check all about value
+        check_all_minusone = True
+        for day in result.keys():
+            if not day == -1:
+                check_all_minusone = False
+                break
+        
+        if check_all_minusone == False:
+            positive_sum = negative_sum = count = 0
+            for day in result.keys():
+                positive_sum += result[day]['positive_value']
+                negative_sum += result[day]['negative_value']
+                count += 1
+            positive_mean = positive_sum / count
+            negative_mean = negative_sum / count
+        
+            for day in result.keys():
+                if result[day]['result_value'] == -1:
+                    result[day]['result_value'] = round(positive_mean/(positive_mean+negative_mean)*100, 2)
+                    result[day]['positive_value'] = round(positive_mean, 2)
+                    result[day]['negative_value'] = round(negative_mean, 2)
+            return result
+        else:
+            return "value_error: All values are missing."
+    
+    search = "카카오"
+    # main(search,"20220607","20220610")
+    end_month = ["31","28","31","30","31","30","31","31","30","31","30","31"]
+    dic_dic = {}
+    
+    # for i in range(1,7):
+    #     main(search,"20220"+str(i)+"01","20220"+str(i)+end_month[i-1])
+    
+    for i in range(1,7):
+        new_dic = {}
+        start_date = "20220"+str(i)+"01"
+        end_date = "20220"+str(i)+end_month[i-1]
+        new_dic["20220"+str(i)] = []
+        processing = Processing_json(f'result/naver_news/news_{search}_naver_{start_date}_{end_date}__{start_date[:6]}.json')
+        temp_dic = processing.dateNList()
+        for key in temp_dic.keys():
+            for comment in temp_dic[key]:
+                new_dic["20220"+str(i)].append(comment)
+        dic_dic[str(i)+"월"]= missing_value_processing(dic_to_result(new_dic))
+
+    print(dic_dic)
+        
     exit()

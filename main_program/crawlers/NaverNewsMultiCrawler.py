@@ -19,6 +19,8 @@ import json
 import sys
 import re
 
+from time import sleep
+
 from tqdm import trange
 
 from utils.util import *
@@ -27,6 +29,11 @@ from utils.FeedbackCounter import FeedbackCounter
 
 from multiprocessing import Process, Manager, cpu_count
 import numpy as np
+
+import warnings
+# 경고메세지 끄기
+warnings.filterwarnings(action='ignore')
+
 
 def crawlLinks( search, start_date, end_date, driver_url, chrome_options):
     num_of_cpu = cpu_count()
@@ -75,7 +82,7 @@ def crawlLinksProcess(date_list, driver_url, chrome_options, search, url_list):
     for date_ in date_list:
         url_page_num = 1
 
-        while True:
+        for _ in range(2):
             date__ = str(date_).replace('-', '.')
             date___ = str(date_).replace('-', '')
             url = f'https://search.naver.com/search.naver?where=news&sm=tab_pge&query={search}&sort=2&photo=0&field=0&pd=3&ds={date__}&de={date__}&mynews=0&office_type=0&office_section_code=0&news_office_checked=&nso=so:r,p:from{date___}to{date___},a:all&start={url_page_num}'
@@ -159,10 +166,10 @@ def crawlNews( search, start_date, end_date, driver_url, chrome_options):
             row = row.replace('\n', '').replace('\r', '')
             news_queue.append(row)
 
-    # headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"}
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"}
     
     fbc = FeedbackCounter( len(news_queue) )
-    headers = {'User-Agent':'Mozilla/5.0'}
+    # headers = {'User-Agent':'Mozilla/5.0'}
     
     rs = (grequests.get(news_queue[i], headers=headers, callback=fbc.feedback) for i in trange(len(news_queue), file=sys.stdout, desc='get Grequest'))
     a = grequests.map(rs)
@@ -256,7 +263,6 @@ def crawlNews( search, start_date, end_date, driver_url, chrome_options):
             json.dump(dict(news_dic), f, indent=4, sort_keys=True, ensure_ascii=False)
 
 
-
 def crawlNewsProcess( idx, driver_url, chrome_options, news_url_list, news_dic, split_date, now_split_index, split_index_count):
     driver = webdriver.Chrome(driver_url, chrome_options=chrome_options)
     count_ = 0
@@ -270,14 +276,14 @@ def crawlNewsProcess( idx, driver_url, chrome_options, news_url_list, news_dic, 
                 
             url = news_url_list.get()
 
+            reply_texts = []
 
             count = 0
             count_ += 1
             # print(f"{idx+1}번 프로세스 네이버뉴스 댓글 크롤링 시작 :{url}\t{ii}/{len(news_url_list)}")
             print(f"{idx+1}번 프로세스 네이버 뉴스 댓글 크롤링 시작 :{url}\t{count_}/{news_url_list.qsize()}개남음\t--{split_date} 중 {now_split_index}/{split_index_count}")
 
-            reply_texts = []
-
+            
             driver.get(url)
 
             try:
@@ -363,8 +369,10 @@ def crawlNewsProcess( idx, driver_url, chrome_options, news_url_list, news_dic, 
             div = driver.find_element_by_xpath('//*[@id="cbox_module_wai_u_cbox_content_wrap_tabpanel"]')
         
             # comments = div.find_elements_by_xpath('//li[**starts-with(id,"comment")**]')
+            sleep(3)
             comments = div.find_elements_by_css_selector('ul>li')
-            reply_count = 0
+            sleep(3)
+            # reply_count = 0
 
             for i in range(len(comments)):
                 comment = comments[i]
@@ -376,24 +384,24 @@ def crawlNewsProcess( idx, driver_url, chrome_options, news_url_list, news_dic, 
                 this_class = this_class.split(' ')[1]
                 # print(f'this_class : {this_class}')
 
-                is_exists_reply = True
+                # is_exists_reply = True
 
 
-                try:
-                    element = WebDriverWait(comment, 1).until(
-                        EC.presence_of_element_located((By.CSS_SELECTOR, f'a[class="u_cbox_btn_reply"]')) 
-                    )
-                    reply_count = element.text
-                    if element.text == "답글0":
-                        is_exists_reply = False
+                # try:
+                #     element = WebDriverWait(comment, 3).until(
+                #         EC.presence_of_element_located((By.CSS_SELECTOR, f'a[class="u_cbox_btn_reply"]')) 
+                #     )
+                #     reply_count = element.text
+                #     if element.text == "답글0":
+                #         is_exists_reply = False
 
-                except TimeoutException:
-                    print("답글 버튼 없음 타임아웃")
-                    is_exists_reply = False
+                # except TimeoutException:
+                #     print("답글 버튼 없음 타임아웃")
+                #     is_exists_reply = False
 
                 
                 try:
-                    text = WebDriverWait(comment, 1).until(EC.presence_of_element_located((By.CSS_SELECTOR , f'div[class="u_cbox_text_wrap"]'))).text
+                    text = WebDriverWait(comment, 7).until(EC.presence_of_element_located((By.CSS_SELECTOR , f'div[class="u_cbox_text_wrap"]'))).text
                     if text != "작성자에 의해 삭제된 댓글입니다." and text != "클린봇이 부적절한 표현을 감지한 댓글입니다." and text != "운영규정 미준수로 인해 삭제된 댓글입니다.":
                         reply_texts.append( text )
                         count += 1
@@ -408,46 +416,45 @@ def crawlNewsProcess( idx, driver_url, chrome_options, news_url_list, news_dic, 
                 #     # reply_btn.click()
                 #     reply_btn.send_keys(Keys.ENTER)
                     
-                #     # while True:
-                #     #     try:
-                #     #         element = WebDriverWait(comment, 1).until(
-                #     #             EC.presence_of_element_located((By.CSS_SELECTOR, f'a[class="u_cbox_btn_more"]')) 
-                #     #         )
+                #     while True:
+                #         try:
+                #             element = WebDriverWait(comment, 1).until(
+                #                 EC.presence_of_element_located((By.CSS_SELECTOR, f'a[class="u_cbox_btn_more"]')) 
+                #             )
                             
-                #     #         more_btn2 = comment.find_element_by_css_selector(f'a[class="u_cbox_btn_more"]')
-                #     #         # print("답글 더보기 클릭")
-                #     #         more_btn2.send_keys(Keys.ENTER)
+                #             more_btn2 = comment.find_element_by_css_selector(f'a[class="u_cbox_btn_more"]')
+                #             # print("답글 더보기 클릭")
+                #             more_btn2.send_keys(Keys.ENTER)
 
-                #     #     except:
-                #     #         # print("답글 더보기 버튼 없음 타임아웃")
-                #     #         break
+                #         except:
+                #             # print("답글 더보기 버튼 없음 타임아웃")
+                #             break
 
+                # replys = []
+                # try:
+                #     replys = WebDriverWait(reply, 3).until(EC.presence_of_element_located((By.CSS_SELECTOR , f'li[class="u_cbox_comment"]')))
 
-                replys = []
-                try:
-                    replys = WebDriverWait(reply, 1).until(EC.presence_of_element_located((By.CSS_SELECTOR , f'li[class="u_cbox_comment"]')))
+                #     for reply in replys:
+                #         try:
+                #             text = WebDriverWait(reply, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR , 'span[class="u_cbox_contents"] > p'))).text
+                #             if text != "작성자에 의해 삭제된 댓글입니다." and text != "클린봇이 부적절한 표현을 감지한 댓글입니다." and text != "운영규정 미준수로 인해 삭제된 댓글입니다.":
+                #                 reply_texts.append( text )
+                #                 count+=1
+                #                 count2+=1
+                #                 print(f"수집한 댓글 : {count}개\t{reply_count}개 중 {count2}개 수집")
 
-                    for reply in replys:
-                        try:
-                            text = WebDriverWait(reply, 1).until(EC.presence_of_element_located((By.CSS_SELECTOR , 'span[class="u_cbox_contents"] > p'))).text
-                            if text != "작성자에 의해 삭제된 댓글입니다." and text != "클린봇이 부적절한 표현을 감지한 댓글입니다." and text != "운영규정 미준수로 인해 삭제된 댓글입니다.":
-                                reply_texts.append( text )
-                                count+=1
-                                count2+=1
-                                print(f"수집한 댓글 : {count}개\t{reply_count}개 중 {count2}개 수집")
-
-                        except:
-                            print("답글 못가져와서 패스")
-                            continue
-                except:
-                    pass
+                #         except:
+                #             print("답글 못가져와서 패스")
+                #             continue
+                # except:
+                #     pass
 
                     
                     # reply_btn.send_keys(Keys.ENTER)
             # for i in reply_texts:
             #     print(i)
             # print(f'수집한 댓글 : {len(reply_texts)}')
-            
+
             news_dic[date__[0:8]].update(
                 { ##original
                     url: {
